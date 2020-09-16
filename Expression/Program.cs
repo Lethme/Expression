@@ -166,6 +166,7 @@ namespace Expression
                                             try
                                             {
                                                 string result = Lib.Expression.Stack.GetExpression(item);
+                                                Console.WriteLine($"[Stack] Current Expression: {item}");
                                                 Console.WriteLine($"[Stack] RPN Expression: " + (result == String.Empty ? "Empty" : result) + "\n");
                                             }
                                             catch (Exception)
@@ -208,6 +209,7 @@ namespace Expression
                                             try
                                             {
                                                 double result = Lib.Expression.Stack.Parse(item);
+                                                Console.WriteLine($"[Stack] Current Expression: {item}");
                                                 Console.WriteLine($"[Stack] Expression result: {result}\n");
                                             }
                                             catch (Exception)
@@ -362,6 +364,7 @@ namespace Expression
                 {
                     static private string[] _samples = new string[] 
                     {
+                        "(16^(1/4))^(5/(64/(2^7)))",
                         "((3*15)-(7+7*4))/(1,25*8^(1/3))"
                     };
                     static public string[] Samples => _samples;
