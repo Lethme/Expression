@@ -5,3 +5,10 @@ E:\Projects\Visual Studio\C#\Collections\Collections\obj\Debug\Collections.cspro
 E:\Projects\Visual Studio\C#\Collections\Collections\obj\Debug\Collections.dll
 E:\Projects\Visual Studio\C#\Collections\Collections\obj\Debug\Collections.pdb
 E:\Projects\Visual Studio\C#\Collections\Collections\bin\Debug\Collections.cs
+E:\Projects\Visual Studio\C#\Expression\Collections\bin\Debug\Collections.cs
+E:\Projects\Visual Studio\C#\Expression\Collections\bin\Debug\Collections.dll
+E:\Projects\Visual Studio\C#\Expression\Collections\bin\Debug\Collections.pdb
+E:\Projects\Visual Studio\C#\Expression\Collections\obj\Debug\Collections.csprojAssemblyReference.cache
+E:\Projects\Visual Studio\C#\Expression\Collections\obj\Debug\Collections.csproj.CoreCompileInputs.cache
+E:\Projects\Visual Studio\C#\Expression\Collections\obj\Debug\Collections.dll
+E:\Projects\Visual Studio\C#\Expression\Collections\obj\Debug\Collections.pdb
