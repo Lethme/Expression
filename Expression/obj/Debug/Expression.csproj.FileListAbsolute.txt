@@ -1,0 +1,17 @@
+E:\Projects\Visual Studio\C#\Expression\Expression\bin\Debug\Expression.exe.config
+E:\Projects\Visual Studio\C#\Expression\Expression\bin\Debug\Expression.exe
+E:\Projects\Visual Studio\C#\Expression\Expression\bin\Debug\Expression.pdb
+E:\Projects\Visual Studio\C#\Expression\Expression\obj\Debug\Expression.csprojAssemblyReference.cache
+E:\Projects\Visual Studio\C#\Expression\Expression\obj\Debug\Expression.csproj.CoreCompileInputs.cache
+E:\Projects\Visual Studio\C#\Expression\Expression\obj\Debug\Expression.exe
+E:\Projects\Visual Studio\C#\Expression\Expression\obj\Debug\Expression.pdb
+X:\Projects\Visual Studio\C#\Expression\Expression\bin\Debug\Expression.exe.config
+X:\Projects\Visual Studio\C#\Expression\Expression\bin\Debug\Expression.exe
+X:\Projects\Visual Studio\C#\Expression\Expression\bin\Debug\Expression.pdb
+X:\Projects\Visual Studio\C#\Expression\Expression\obj\Debug\Expression.csprojAssemblyReference.cache
+X:\Projects\Visual Studio\C#\Expression\Expression\obj\Debug\Expression.exe
+X:\Projects\Visual Studio\C#\Expression\Expression\obj\Debug\Expression.pdb
+E:\Projects\Visual Studio\C#\Expression\Expression\bin\Debug\Collections.dll
+E:\Projects\Visual Studio\C#\Expression\Expression\bin\Debug\Collections.pdb
+E:\Projects\Visual Studio\C#\Expression\Expression\obj\Debug\Expression.csproj.CopyComplete
+E:\Projects\Visual Studio\C#\Expression\Expression\bin\Debug\Collections.cs
