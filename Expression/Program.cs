@@ -364,7 +364,7 @@ namespace Expression
                 }
                 static public class Stack
                 {
-                    readonly public struct Sample
+                    public struct Sample
                     {
                         public string Expression { get; }
                         public double ExpectedResult { get; }
@@ -413,12 +413,6 @@ namespace Expression
                             case '^': return 5;
                             default: return 6;
                         }
-                    }
-                    static public double Parse(string input)
-                    {
-                        string output = ConvertToRPN(input);
-                        double result = EvaluateRPN(output);
-                        return result;
                     }
                     static public string ConvertToRPN(string input)
                     {
@@ -522,6 +516,12 @@ namespace Expression
                             }
                         }
                         return temp.Peek();
+                    }
+                    static public double Parse(string input)
+                    {
+                        string output = ConvertToRPN(input);
+                        double result = EvaluateRPN(output);
+                        return result;
                     }
                 }
             }
