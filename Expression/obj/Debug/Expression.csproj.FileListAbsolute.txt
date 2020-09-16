@@ -15,3 +15,7 @@ E:\Projects\Visual Studio\C#\Expression\Expression\bin\Debug\Collections.dll
 E:\Projects\Visual Studio\C#\Expression\Expression\bin\Debug\Collections.pdb
 E:\Projects\Visual Studio\C#\Expression\Expression\obj\Debug\Expression.csproj.CopyComplete
 E:\Projects\Visual Studio\C#\Expression\Expression\bin\Debug\Collections.cs
+X:\Projects\Visual Studio\C#\Expression\Expression\bin\Debug\Collections.cs
+X:\Projects\Visual Studio\C#\Expression\Expression\bin\Debug\Collections.dll
+X:\Projects\Visual Studio\C#\Expression\Expression\bin\Debug\Collections.pdb
+X:\Projects\Visual Studio\C#\Expression\Expression\obj\Debug\Expression.csproj.CopyComplete

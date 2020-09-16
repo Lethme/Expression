@@ -159,6 +159,23 @@ namespace Expression
                             {
                                 if (param_count == 1)
                                 {
+                                    if (param[0] == "-t")
+                                    {
+                                        foreach (var item in Lib.Expression.Stack.Samples)
+                                        {
+                                            try
+                                            {
+                                                string result = Lib.Expression.Stack.GetExpression(item);
+                                                Console.WriteLine($"[Stack] RPN Expression: " + (result == String.Empty ? "Empty" : result) + "\n");
+                                            }
+                                            catch (Exception)
+                                            {
+                                                Console.WriteLine("[Stack] Invalid expression!\n");
+                                            }
+                                        }
+                                        break;
+                                    }
+
                                     try
                                     {
                                         string result = Lib.Expression.Stack.GetExpression(param[0]);
@@ -184,6 +201,23 @@ namespace Expression
                             {
                                 if (param_count == 1)
                                 {
+                                    if (param[0] == "-t")
+                                    {
+                                        foreach (var item in Lib.Expression.Stack.Samples)
+                                        {
+                                            try
+                                            {
+                                                double result = Lib.Expression.Stack.Parse(item);
+                                                Console.WriteLine($"[Stack] Expression result: {result}\n");
+                                            }
+                                            catch (Exception)
+                                            {
+                                                Console.WriteLine("[Stack] Invalid expression!\n");
+                                            }
+                                        }
+                                        break;
+                                    }
+
                                     try
                                     {
                                         double result = Lib.Expression.Stack.Parse(param[0]);
@@ -193,17 +227,6 @@ namespace Expression
                                     {
                                         Console.WriteLine("[Stack] Invalid expression!\n");
                                     }
-                                    /*
-                                    try
-                                    {
-                                        double result = Lib.Expression.Regex.Parse(param[0]);
-                                        Console.WriteLine($"[Regex] Expression result: {result}\n");
-                                    }
-                                    catch (Exception)
-                                    {
-                                        Console.WriteLine("[Regex] Invalid expression!\n");
-                                    }
-                                    */
                                 }
                                 else if (param_count == 0)
                                 {
@@ -337,6 +360,11 @@ namespace Expression
                 }
                 static public class Stack
                 {
+                    static private string[] _samples = new string[] 
+                    {
+                        "((3*15)-(7+7*4))/(1,25*8^(1/3))"
+                    };
+                    static public string[] Samples => _samples;
                     static private bool IsDelimeter(char c)
                     {
                         if ((" =".IndexOf(c) != -1)) return true;

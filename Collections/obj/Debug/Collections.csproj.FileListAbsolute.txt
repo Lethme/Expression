@@ -12,3 +12,9 @@ E:\Projects\Visual Studio\C#\Expression\Collections\obj\Debug\Collections.csproj
 E:\Projects\Visual Studio\C#\Expression\Collections\obj\Debug\Collections.csproj.CoreCompileInputs.cache
 E:\Projects\Visual Studio\C#\Expression\Collections\obj\Debug\Collections.dll
 E:\Projects\Visual Studio\C#\Expression\Collections\obj\Debug\Collections.pdb
+X:\Projects\Visual Studio\C#\Expression\Collections\bin\Debug\Collections.cs
+X:\Projects\Visual Studio\C#\Expression\Collections\bin\Debug\Collections.dll
+X:\Projects\Visual Studio\C#\Expression\Collections\bin\Debug\Collections.pdb
+X:\Projects\Visual Studio\C#\Expression\Collections\obj\Debug\Collections.csprojAssemblyReference.cache
+X:\Projects\Visual Studio\C#\Expression\Collections\obj\Debug\Collections.dll
+X:\Projects\Visual Studio\C#\Expression\Collections\obj\Debug\Collections.pdb
