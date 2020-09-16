@@ -159,27 +159,9 @@ namespace Expression
                             {
                                 if (param_count == 1)
                                 {
-                                    if (param[0] == "-t")
-                                    {
-                                        foreach (var item in Lib.Expression.Stack.Samples)
-                                        {
-                                            try
-                                            {
-                                                string result = Lib.Expression.Stack.GetExpression(item);
-                                                Console.WriteLine($"[Stack] Current Expression: {item}");
-                                                Console.WriteLine($"[Stack] RPN Expression: " + (result == String.Empty ? "Empty" : result) + "\n");
-                                            }
-                                            catch (Exception)
-                                            {
-                                                Console.WriteLine("[Stack] Invalid expression!\n");
-                                            }
-                                        }
-                                        break;
-                                    }
-
                                     try
                                     {
-                                        string result = Lib.Expression.Stack.GetExpression(param[0]);
+                                        string result = Lib.Expression.Stack.ConvertToRPN(param[0]);
                                         Console.WriteLine($"[Stack] RPN Expression: " + (result == String.Empty ? "Empty" : result) + "\n");
                                     }
                                     catch (Exception)
@@ -200,7 +182,23 @@ namespace Expression
                             }
                         case "calc":
                             {
-                                if (param_count == 1)
+                                if (param_count == 2)
+                                {
+                                    if (param[0] == "-r")
+                                    {
+                                        try
+                                        {
+                                            double result = Lib.Expression.Stack.EvaluateRPN(param[1]);
+                                            Console.WriteLine($"[Stack] RPN Expression result: {result}\n");
+                                        }
+                                        catch (Exception)
+                                        {
+                                            Console.WriteLine("[Stack] Invalid expression!\n");
+                                        }
+                                        break;
+                                    }
+                                }
+                                else if (param_count == 1)
                                 {
                                     if (param[0] == "-t")
                                     {
@@ -208,9 +206,13 @@ namespace Expression
                                         {
                                             try
                                             {
-                                                double result = Lib.Expression.Stack.Parse(item);
-                                                Console.WriteLine($"[Stack] Current Expression: {item}");
-                                                Console.WriteLine($"[Stack] Expression result: {result}\n");
+                                                Console.WriteLine($"[Stack] Current expression: {item.Expression}");
+                                                Console.WriteLine($"[Stack] Expected RPN expression: {item.ExpectedRPN}");
+                                                Console.WriteLine($"[Stack] Expected expression result: {item.ExpectedResult}");
+                                                double result = Lib.Expression.Stack.Parse(item.Expression);
+                                                string resultRPN = Lib.Expression.Stack.ConvertToRPN(item.Expression);
+                                                Console.WriteLine($"[Stack] Actual RPN expression  : {resultRPN}");
+                                                Console.WriteLine($"[Stack] Actual expression result  : {result}\n");
                                             }
                                             catch (Exception)
                                             {
@@ -362,12 +364,27 @@ namespace Expression
                 }
                 static public class Stack
                 {
-                    static private string[] _samples = new string[] 
+                    readonly public struct Sample
                     {
-                        "(16^(1/4))^(5/(64/(2^7)))",
-                        "((3*15)-(7+7*4))/(1,25*8^(1/3))"
+                        public string Expression { get; }
+                        public double ExpectedResult { get; }
+                        public string ExpectedRPN { get; }
+                        public Sample(string Expression, string ExpectedRPN, double ExpectedResult)
+                        {
+                            this.Expression = Expression;
+                            this.ExpectedResult = ExpectedResult;
+                            this.ExpectedRPN = ExpectedRPN;
+                        }
+                    }
+                    static private Sample[] _samples = new Sample[]
+                    {
+                        new Sample("(16^(1/4))^(5/(64/(2^7)))", "16 1 4 / ^ 5 64 2 7 ^ / / ^", 1024),
+                        new Sample("((3*15)-(7+7*4))/(1,25*8^(1/3))", "3 15 * 7 7 4 * + - 1,25 8 1 3 / ^ * /", 4),
+                        new Sample("5*(-3)", "5 3 $ *", -15),
+                        new Sample("-10*7", "10 $ 7 *", -70),
+                        new Sample("2^(-1)", "2 1 $ ^", 0.5)
                     };
-                    static public string[] Samples => _samples;
+                    static public Sample[] Samples => _samples;
                     static private bool IsDelimeter(char c)
                     {
                         if ((" =".IndexOf(c) != -1)) return true;
@@ -376,6 +393,11 @@ namespace Expression
                     static private bool IsOperator(char с)
                     {
                         if (("+-/*^()".IndexOf(с) != -1)) return true;
+                        return false;
+                    }
+                    static private bool IsUnaryOperator(char с)
+                    {
+                        if (("$#".IndexOf(с) != -1)) return true;
                         return false;
                     }
                     static private byte GetPriority(char s)
@@ -394,11 +416,11 @@ namespace Expression
                     }
                     static public double Parse(string input)
                     {
-                        string output = GetExpression(input);
-                        double result = Counting(output);
+                        string output = ConvertToRPN(input);
+                        double result = EvaluateRPN(output);
                         return result;
                     }
-                    static public string GetExpression(string input)
+                    static public string ConvertToRPN(string input)
                     {
                         string output = string.Empty;
                         Stack<char> operStack = new Stack<char>();
@@ -452,7 +474,7 @@ namespace Expression
 
                         return output;
                     }
-                    static private double Counting(string input)
+                    static public double EvaluateRPN(string input)
                     {
                         double result = 0;
                         Stack<double> temp = new Stack<double>();
@@ -471,6 +493,17 @@ namespace Expression
                                 }
                                 temp.Push(double.Parse(a));
                                 i--;
+                            }
+                            else if (IsUnaryOperator(input[i]))
+                            {
+                                double a = temp.Pop();
+
+                                switch (input[i])
+                                {
+                                    case '$': result = -a; break;
+                                    case '#': result = Math.Sqrt(a); break;
+                                }
+                                temp.Push(result);
                             }
                             else if (IsOperator(input[i]))
                             {
