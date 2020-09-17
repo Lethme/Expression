@@ -161,12 +161,12 @@ namespace Expression
                                 {
                                     try
                                     {
-                                        string result = Lib.Expression.Stack.ConvertToRPN(param[0]);
-                                        Console.WriteLine($"[Stack] RPN Expression: " + (result == String.Empty ? "Empty" : result) + "\n");
+                                        string result = Lib.Expression.GetRPNExpression(param[0]);
+                                        Console.WriteLine($"[Calc] RPN Expression: " + (result == String.Empty ? "Empty" : result) + "\n");
                                     }
                                     catch (Exception)
                                     {
-                                        Console.WriteLine("[Stack] Invalid expression!");
+                                        Console.WriteLine("[Calc] Invalid expression!");
                                     }
                                 }
                                 else if (param_count == 0)
@@ -188,48 +188,63 @@ namespace Expression
                                     {
                                         try
                                         {
-                                            double result = Lib.Expression.Stack.EvaluateRPN(param[1]);
-                                            Console.WriteLine($"[Stack] RPN Expression result: {result}\n");
+                                            double result = Lib.Expression.EvaluateRPN(param[1]);
+                                            Console.WriteLine($"[Calc] RPN Expression result: {result}\n");
                                         }
                                         catch (Exception)
                                         {
-                                            Console.WriteLine("[Stack] Invalid expression!\n");
+                                            Console.WriteLine("[Calc] Invalid expression!\n");
                                         }
-                                        break;
                                     }
+                                    else
+                                    {
+                                        if (param[1] != "true" && param[1] != "false") break;
+                                        switch (param[0])
+                                        {
+                                            case "--exprpn":
+                                                {
+                                                    if (Lib.Expression.Samples.SwitchExpectedRPN(Boolean.Parse(param[1])))
+                                                        Console.WriteLine("[Calc] Expected RPN expressions will be shown in samples implementation.\n");
+                                                    else
+                                                        Console.WriteLine("[Calc] Expected RPN expressions will be hidden in samples implementation.\n");
+                                                    break;
+                                                }
+                                            case "--expres":
+                                                {
+                                                    if (Lib.Expression.Samples.SwitchExpectedResult(Boolean.Parse(param[1])))
+                                                        Console.WriteLine("[Calc] Expected expression results will be shown in samples implementation.\n");
+                                                    else
+                                                        Console.WriteLine("[Calc] Expected expression results will be hidden in samples implementation.\n");
+                                                    break;
+                                                }
+                                            case "--actrpn":
+                                                {
+                                                    if (Lib.Expression.Samples.SwitchActualRPN(Boolean.Parse(param[1])))
+                                                        Console.WriteLine("[Calc] Actual RPN expressions will be shown in samples implementation.\n");
+                                                    else
+                                                        Console.WriteLine("[Calc] Actual RPN expressions will be hidden in samples implementation.\n");
+                                                    break;
+                                                }
+                                        }
+                                    }
+                                    break;
                                 }
                                 else if (param_count == 1)
                                 {
                                     if (param[0] == "-t")
                                     {
-                                        foreach (var item in Lib.Expression.Stack.Samples)
-                                        {
-                                            try
-                                            {
-                                                Console.WriteLine($"[Stack] Current expression: {item.Expression}");
-                                                Console.WriteLine($"[Stack] Expected RPN expression: {item.ExpectedRPN}");
-                                                Console.WriteLine($"[Stack] Expected expression result: {item.ExpectedResult}");
-                                                double result = Lib.Expression.Stack.Parse(item.Expression);
-                                                string resultRPN = Lib.Expression.Stack.ConvertToRPN(item.Expression);
-                                                Console.WriteLine($"[Stack] Actual RPN expression  : {resultRPN}");
-                                                Console.WriteLine($"[Stack] Actual expression result  : {result}\n");
-                                            }
-                                            catch (Exception)
-                                            {
-                                                Console.WriteLine("[Stack] Invalid expression!\n");
-                                            }
-                                        }
+                                        Lib.Expression.Samples.ImplementSamples();
                                         break;
                                     }
 
                                     try
                                     {
-                                        double result = Lib.Expression.Stack.Parse(param[0]);
-                                        Console.WriteLine($"[Stack] Expression result: {result}\n");
+                                        double result = Lib.Expression.Parse(param[0]);
+                                        Console.WriteLine($"[Calc] Expression result: {result}\n");
                                     }
                                     catch (Exception)
                                     {
-                                        Console.WriteLine("[Stack] Invalid expression!\n");
+                                        Console.WriteLine("[Calc] Invalid expression!\n");
                                     }
                                 }
                                 else if (param_count == 0)
@@ -278,98 +293,32 @@ namespace Expression
             }
             static public class Expression
             {
-                static public class Regex
+                static public class Samples
                 {
-                    public static bool TryParse(string str)
+                    static private bool _show_expected_rpn = false;
+                    static private bool _show_expected_result = true;
+                    static private bool _show_actual_rpn = false;
+                    static public bool SwitchExpectedRPN(bool state)
                     {
-                        try
-                        {
-                            Parse(str);
-                            return true;
-                        }
-                        catch (FormatException)
-                        {
-                            return false;
-                        }
+                        _show_expected_rpn = state;
+                        return _show_expected_rpn;
                     }
-
-                    public static double Parse(string str)
+                    static public bool SwitchExpectedResult(bool state)
                     {
-                        // Парсинг скобок
-                        Match matchSk = System.Text.RegularExpressions.Regex.Match(str, string.Format(@"\(({0})\)", @"[1234567890\.\+\-\*\/^%]*"));
-                        if (matchSk.Groups.Count > 1)
-                        {
-                            string inner = matchSk.Groups[0].Value.Substring(1, matchSk.Groups[0].Value.Trim().Length - 2);
-                            string left = str.Substring(0, matchSk.Index);
-                            string right = str.Substring(matchSk.Index + matchSk.Length);
-                            return Parse(left + Parse(inner) + right);
-                        }
-
-                        // Парсинг действий
-                        Match matchMulOp = System.Text.RegularExpressions.Regex.Match(str, string.Format(@"({0})\s?({1})\s?({0})\s?", RegexNum, RegexMulOp));
-                        Match matchAddOp = System.Text.RegularExpressions.Regex.Match(str, string.Format(@"({0})\s?({1})\s?({2})\s?", RegexNum, RegexAddOp, RegexNum));
-                        var match = (matchMulOp.Groups.Count > 1) ? matchMulOp : (matchAddOp.Groups.Count > 1) ? matchAddOp : null;
-                        if (match != null)
-                        {
-                            string left = str.Substring(0, match.Index);
-                            string right = str.Substring(match.Index + match.Length);
-                            string val = ParseAct(match).ToString(CultureInfo.InvariantCulture);
-                            return Parse(string.Format("{0}{1}{2}", left, val, right));
-                        }
-
-                        // Парсинг числа
-                        try
-                        {
-                            return double.Parse(str, CultureInfo.InvariantCulture);
-                        }
-                        catch (FormatException)
-                        {
-                            throw new FormatException(string.Format("Неверная входная строка '{0}'", str));
-                        }
+                        _show_expected_result = state;
+                        return _show_expected_result;
                     }
-
-                    private const string RegexNum = @"[-]?\d+\.?\d*";
-                    private const string RegexMulOp = @"[\*\/^%]";
-                    private const string RegexAddOp = @"[\+\-]";
-
-                    private static double ParseAct(Match match)
+                    static public bool SwitchActualRPN(bool state)
                     {
-                        double a = double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
-                        double b = double.Parse(match.Groups[3].Value, CultureInfo.InvariantCulture);
-
-                        switch (match.Groups[2].Value)
-                        {
-                            case "+":
-                                return a + b;
-
-                            case "-":
-                                return a - b;
-
-                            case "*":
-                                return a * b;
-
-                            case "/":
-                                return a / b;
-
-                            case "^":
-                                return Math.Pow(a, b);
-
-                            case "%":
-                                return a % b;
-
-                            default:
-                                throw new FormatException(string.Format("Неверная входная строка '{0}'", match.Value));
-                        }
+                        _show_actual_rpn = state;
+                        return _show_actual_rpn;
                     }
-                }
-                static public class Stack
-                {
-                    public struct Sample
+                    private struct Sample
                     {
                         public string Expression { get; }
                         public double ExpectedResult { get; }
                         public string ExpectedRPN { get; }
-                        public Sample(string Expression, string ExpectedRPN, double ExpectedResult)
+                        public Sample(string Expression, string ExpectedRPN = "", double ExpectedResult = Double.NaN)
                         {
                             this.Expression = Expression;
                             this.ExpectedResult = ExpectedResult;
@@ -387,198 +336,273 @@ namespace Expression
                         new Sample("sqrt(40-(-9))+(-2/5*(-(-5))+423,233^2/15^3,33333)", "40 9 $ - # 11 22 3 / ^ 22,222 / 44,3321 $ - 6 1 3 / ^ + +", 26.520817722),
                         new Sample("sqrt(40-(-9)) + (11^(22/3)/22,222)-(-44,3321)+6^(1/3)", "", 1950331.26665),
                         new Sample("sqrt(sqr(23,33))-4/sqr(sqrt(sqr((-16)/(-4))))", "", 23.08),
-                        new Sample("sqrt(85^2/(21^(-3))-11*11/(-55-(-55+33*123/443)))", "85 2 ^ 21 3 $ ^ / 11 11 * 55 $ 55 $ 33 123 * 443 / + - / - #", 8179.89842272)
+                        new Sample("sqrt(85^2/(21^(-3))-11*11/(-55-(-55+33*123/443)))", "85 2 ^ 21 3 $ ^ / 11 11 * 55 $ 55 $ 33 123 * 443 / + - / - #", 8179.89842272),
+                        new Sample("sqr(sin(-0,5)) + sqr(cos(-0,5))", "0,5 $ S & 0,5 $ C & +", 1),
+                        new Sample("sin(-0,5)^2 + cos(-0,5)^2", "0,5 $ S 2 ^ 0,5 $ C 2 ^ +", 1),
+                        new Sample("1/sin(cos(sqrt(1-(-2,34))*(1,3+5,85^2)-2,71^(15/0,9455))/3,76534)", "1 1 2,34 $ - # 1,3 5,85 2 ^ + * 2,71 15 0,9455 / ^ - C 3,76534 / S /", 3.8099727)
                     };
-                    static public Sample[] Samples => _samples;
-                    static private bool IsDelimeter(char c)
+                    static public void ImplementSamples()
                     {
-                        if ((" =".IndexOf(c) != -1)) return true;
-                        return false;
-                    }
-                    static private bool IsOperator(char с)
-                    {
-                        if (("+-/*^()".IndexOf(с) != -1)) return true;
-                        return false;
-                    }
-                    static private bool IsUnaryOperator(char с)
-                    {
-                        if (("$#&".IndexOf(с) != -1)) return true;
-                        return false;
-                    }
-                    static private byte GetPriority(char s)
-                    {
-                        switch (s)
+                        int spaces_from_left = 30;
+                        foreach (var item in _samples)
                         {
-                            case '(': return 0;
-                            case ')': return 1;
-                            case '+': return 2;
-                            case '-': return 3;
-                            case '*': return 4;
-                            case '/': return 4;
-                            case '^': return 5;
-                            default: return 6;
+                            try
+                            {
+                                Console.WriteLine("[Calc]" + "Current expression: ".PadLeft(spaces_from_left) + item.Expression);
+                                if (_show_expected_rpn) Console.WriteLine("[Calc]" + "Expected RPN expression: ".PadLeft(spaces_from_left) + item.ExpectedRPN);
+                                if (_show_expected_result) Console.WriteLine("[Calc]" + "Expected expression result: ".PadLeft(spaces_from_left) + item.ExpectedResult);
+                                double result = Parse(item.Expression);
+                                string resultRPN = GetRPNExpression(item.Expression);
+                                if (_show_actual_rpn) Console.WriteLine("[Calc]" + "Actual RPN expression: ".PadLeft(spaces_from_left) + resultRPN);
+                                Console.WriteLine("[Calc]" + "Actual expression result: ".PadLeft(spaces_from_left) + result);
+                                Console.WriteLine();
+                            }
+                            catch (Exception)
+                            {
+                                Console.WriteLine("[Calc] Invalid expression!\n");
+                            }
                         }
                     }
-                    static public string ConvertToRPN(string input)
+                }
+                static private class Enums
+                {
+                    public enum UnaryOperators
                     {
-                        string output = string.Empty;
-                        Stack<char> operStack = new Stack<char>();
+                        Minus = '$',
+                        SquareRoot = '#',
+                        Square = '&',
+                        Sin = 'S',
+                        Cos = 'C',
+                        Tan = 't',
+                        Ctg = 'c',
+                        Ln = 'l',
+                        Lg = 'g',
+                        Log = 'd'
+                    }
+                    public enum ConstantOperators
+                    {
+                        Pi = 'p',
+                        E = 'e'
+                    }
+                    public enum BinaryOperators
+                    {
+                        Plus = '+',
+                        Minus = '-',
+                        Mul = '*',
+                        Div = '/',
+                        Pow = '^',
+                        LeftBracket = '(',
+                        RightBracket = ')'
+                    }
+                    public enum Delimeters
+                    {
+                        Space = ' ',
+                        Equal = '='
+                    }
+                }
+                static private bool IsDelimeter(char c)
+                {
+                    if (Enum.IsDefined(typeof(Enums.Delimeters), (int)c)) return true;
+                    return false;
+                }
+                static private bool IsBinaryOperator(char c)
+                {
+                    if (Enum.IsDefined(typeof(Enums.BinaryOperators), (int)c)) return true;
+                    return false;
+                }
+                static private bool IsUnaryOperator(char c)
+                {
+                    if (Enum.IsDefined(typeof(Enums.UnaryOperators), (int)c)) return true;
+                    return false;
+                }
+                static private bool IsConstantOperator(char c)
+                {
+                    if (Enum.IsDefined(typeof(Enums.ConstantOperators), (int)c)) return true;
+                    return false;
+                }
+                static private byte GetBinaryOperatorPriority(char s)
+                {
+                    switch (s)
+                    {
+                        case (char)Enums.BinaryOperators.LeftBracket: return 0;
+                        case (char)Enums.BinaryOperators.RightBracket: return 1;
+                        case (char)Enums.BinaryOperators.Plus: return 2;
+                        case (char)Enums.BinaryOperators.Minus: return 3;
+                        case (char)Enums.BinaryOperators.Mul: return 4;
+                        case (char)Enums.BinaryOperators.Div: return 4;
+                        case (char)Enums.BinaryOperators.Pow: return 5;
+                        default: return 6;
+                    }
+                }
+                static public string GetRPNExpression(string input)
+                {
+                    string output = string.Empty;
+                    Stack<char> operStack = new Stack<char>();
 
-                        for (int i = 0; i < input.Length; i++)
+                    for (int i = 0; i < input.Length; i++)
+                    {
+                        if (IsDelimeter(input[i]))
+                            continue;
+
+                        if (Char.IsDigit(input[i]))
                         {
-                            if (IsDelimeter(input[i]))
-                                continue;
-
-                            if (Char.IsDigit(input[i]))
+                            while (!IsDelimeter(input[i]) && !IsBinaryOperator(input[i]))
                             {
-                                while (!IsDelimeter(input[i]) && !IsOperator(input[i]))
-                                {
-                                    output += input[i];
-                                    i++;
+                                output += input[i];
+                                i++;
 
-                                    if (i == input.Length) break;
-                                }
-
-                                output += " ";
-                                i--;
+                                if (i == input.Length) break;
                             }
-                            if (Char.IsLetter(input[i]))
-                            {
-                                string function = String.Empty;
-                                while (Char.IsLetter(input[i]))
-                                {
-                                    function += input[i++];
-                                }
 
-                                switch(function)
+                            output += " ";
+                            i--;
+                        }
+                        if (Char.IsLetter(input[i]))
+                        {
+                            string function = String.Empty;
+                            while (Char.IsLetter(input[i]))
+                            {
+                                function += input[i];
+                                if (i + 1 == input.Length) break;
+                                i++;
+                            }
+
+                            switch (function)
+                            {
+                                case "sqrt": { if (input[i] != '(') throw new ArgumentException(); operStack.Push((char)Enums.UnaryOperators.SquareRoot); break; }
+                                case "sqr": { if (input[i] != '(') throw new ArgumentException(); operStack.Push((char)Enums.UnaryOperators.Square); break; }
+                                case "sin": { if (input[i] != '(') throw new ArgumentException(); operStack.Push((char)Enums.UnaryOperators.Sin); break; }
+                                case "cos": { if (input[i] != '(') throw new ArgumentException(); operStack.Push((char)Enums.UnaryOperators.Cos); break; }
+                                case "tan": { if (input[i] != '(') throw new ArgumentException(); operStack.Push((char)Enums.UnaryOperators.Tan); break; }
+                                case "ctg": { if (input[i] != '(') throw new ArgumentException(); operStack.Push((char)Enums.UnaryOperators.Ctg); break; }
+                                case "ln": { if (input[i] != '(') throw new ArgumentException(); operStack.Push((char)Enums.UnaryOperators.Ln); break; }
+                                case "lg": { if (input[i] != '(') throw new ArgumentException(); operStack.Push((char)Enums.UnaryOperators.Lg); break; }
+                                case "log": { if (input[i] != '(') throw new ArgumentException(); operStack.Push((char)Enums.UnaryOperators.Log); break; }
+                                case "pi": { operStack.Push((char)Enums.ConstantOperators.Pi); break; }
+                                case "e": { operStack.Push((char)Enums.ConstantOperators.E); break; }
+                                default: { throw new ArgumentException(); }
+                            }
+                        }
+                        if (IsBinaryOperator(input[i]))
+                        {
+                            if (input[i] == (char)Enums.BinaryOperators.LeftBracket)
+                                operStack.Push(input[i]);
+                            else if (input[i] == (char)Enums.BinaryOperators.RightBracket)
+                            {
+                                char s = operStack.Pop();
+
+                                while (s != (char)Enums.BinaryOperators.LeftBracket)
                                 {
-                                    case "sqrt":
-                                        {
-                                            operStack.Push('#');
-                                            break;
-                                        }
-                                    case "sqr":
-                                        {
-                                            operStack.Push('&');
-                                            break;
-                                        }
-                                    default: { throw new ArgumentException(); }
+                                    output += s.ToString() + ' ';
+                                    s = operStack.Pop();
                                 }
                             }
-                            if (IsOperator(input[i]))
+                            else
                             {
-                                if (input[i] == '(')
-                                    operStack.Push(input[i]);
-                                else if (input[i] == ')')
-                                {
-                                    char s = operStack.Pop();
+                                if (operStack.Count > 0)
+                                    if (GetBinaryOperatorPriority(input[i]) <= GetBinaryOperatorPriority(operStack.Peek()))
+                                        output += operStack.Pop().ToString() + " ";
 
-                                    while (s != '(')
+                                if (input[i] == (char)Enums.BinaryOperators.Minus)
+                                {
+                                    var j = i;
+                                    while (j > 0 && !Char.IsDigit(input[j]) && !(input[j] == (char)Enums.BinaryOperators.LeftBracket))
                                     {
-                                        output += s.ToString() + ' ';
-                                        s = operStack.Pop();
+                                        j--;
                                     }
+                                    if (input[j] == (char)Enums.BinaryOperators.LeftBracket || j == 0) operStack.Push((char)Enums.UnaryOperators.Minus);
+                                    else operStack.Push((char)Enums.BinaryOperators.Minus);
                                 }
                                 else
                                 {
-                                    if (operStack.Count > 0)
-                                        if (GetPriority(input[i]) <= GetPriority(operStack.Peek()))
-                                            output += operStack.Pop().ToString() + " ";
-
-                                    if (input[i] == '-')
-                                    {
-                                        var j = i;
-                                        while (j > 0 && !Char.IsDigit(input[j]) && !(input[j] == '('))
-                                        {
-                                            j--;
-                                        }
-                                        if (input[j] == '(' || j == 0) operStack.Push('$');
-                                        else operStack.Push('-');
-                                    }
-                                    else
-                                    {
-                                        operStack.Push(char.Parse(input[i].ToString()));
-                                    }
+                                    operStack.Push(char.Parse(input[i].ToString()));
                                 }
                             }
                         }
-
-                        while (operStack.Count > 0)
-                            output += operStack.Pop() + " ";
-
-                        return output;
                     }
-                    static public double EvaluateRPN(string input)
-                    {
-                        double result = 0;
-                        Stack<double> temp = new Stack<double>();
 
-                        for (int i = 0; i < input.Length; i++)
+                    while (operStack.Count > 0)
+                        output += operStack.Pop() + " ";
+
+                    return output;
+                }
+                static public double EvaluateRPN(string input)
+                {
+                    double result = 0;
+                    Stack<double> numbers = new Stack<double>();
+
+                    for (int i = 0; i < input.Length; i++)
+                    {
+                        if (Char.IsDigit(input[i]))
                         {
-                            if (Char.IsDigit(input[i]))
-                            {
-                                string a = string.Empty;
+                            string a = string.Empty;
 
-                                while (!IsDelimeter(input[i]) && !IsOperator(input[i]))
-                                {
-                                    a += input[i];
-                                    i++;
-                                    if (i == input.Length) break;
-                                }
-                                temp.Push(double.Parse(a));
-                                i--;
+                            while (!IsDelimeter(input[i]) && !IsBinaryOperator(input[i]))
+                            {
+                                a += input[i];
+                                i++;
+                                if (i == input.Length) break;
                             }
-                            else if (IsUnaryOperator(input[i]))
+                            numbers.Push(double.Parse(a));
+                            i--;
+                        }
+                        else if (IsConstantOperator(input[i]))
+                        {
+                            switch (input[i])
                             {
-                                double a = temp.Pop();
-
-                                switch (input[i])
-                                {
-                                    case '$': result = -a; break;
-                                    case '#':
-                                        {
-                                            if (a < 0) throw new ArgumentOutOfRangeException();
-                                            result = Math.Sqrt(a);
-                                            break;
-                                        }
-                                    case '&':
-                                        {
-                                            result = a * a;
-                                            break;
-                                        }
-                                }
-                                temp.Push(result);
-                            }
-                            else if (IsOperator(input[i]))
-                            {
-                                double a = temp.Pop();
-                                double b = temp.Pop();
-
-                                switch (input[i])
-                                {
-                                    case '+': result = b + a; break;
-                                    case '-': result = b - a; break;
-                                    case '*': result = b * a; break;
-                                    case '/': 
-                                        {
-                                            if (a == 0) throw new DivideByZeroException();
-                                            result = b / a;
-                                            break;
-                                        }
-                                    case '^': result = double.Parse(Math.Pow(double.Parse(b.ToString()), double.Parse(a.ToString())).ToString()); break;
-                                }
-                                if (Double.IsNaN(result)) throw new ArgumentException();
-                                temp.Push(result);
+                                case (char)Enums.ConstantOperators.Pi: { numbers.Push(Math.PI); break; }
+                                case (char)Enums.ConstantOperators.E: { numbers.Push(Math.E); break; }
                             }
                         }
-                        return temp.Peek();
+                        else if (IsUnaryOperator(input[i]))
+                        {
+                            double a = numbers.Pop();
+
+                            switch (input[i])
+                            {
+                                case (char)Enums.UnaryOperators.Minus: result = -a; break;
+                                case (char)Enums.UnaryOperators.SquareRoot: { if (a < 0) throw new ArgumentOutOfRangeException(); result = Math.Sqrt(a); break; }
+                                case (char)Enums.UnaryOperators.Square: { result = a * a; break; }
+                                case (char)Enums.UnaryOperators.Sin: { result = Math.Sin(a); break; }
+                                case (char)Enums.UnaryOperators.Cos: { result = Math.Cos(a); break; }
+                                case (char)Enums.UnaryOperators.Tan: { result = Math.Tan(a); break; }
+                                case (char)Enums.UnaryOperators.Ctg: { result = 1 / Math.Tan(a); break; }
+                                case (char)Enums.UnaryOperators.Ln: { if (a <= 0) throw new ArgumentException(); result = Math.Log(a); break; }
+                                case (char)Enums.UnaryOperators.Lg: { if (a <= 0) throw new ArgumentException(); result = Math.Log10(a); break; }
+                                case (char)Enums.UnaryOperators.Log: { if (a <= 0) throw new ArgumentException(); result = Math.Log(a) / Math.Log(2); break; }
+                            }
+                            if (Double.IsNaN(result)) throw new ArgumentException();
+                            numbers.Push(result);
+                        }
+                        else if (IsBinaryOperator(input[i]))
+                        {
+                            double a = numbers.Pop();
+                            double b = numbers.Pop();
+
+                            switch (input[i])
+                            {
+                                case (char)Enums.BinaryOperators.Plus: result = b + a; break;
+                                case (char)Enums.BinaryOperators.Minus: result = b - a; break;
+                                case (char)Enums.BinaryOperators.Mul: result = b * a; break;
+                                case (char)Enums.BinaryOperators.Div:
+                                    {
+                                        if (a == 0) throw new DivideByZeroException();
+                                        result = b / a;
+                                        break;
+                                    }
+                                case (char)Enums.BinaryOperators.Pow: result = double.Parse(Math.Pow(double.Parse(b.ToString()), double.Parse(a.ToString())).ToString()); break;
+                            }
+                            if (Double.IsNaN(result)) throw new ArgumentException();
+                            numbers.Push(result);
+                        }
                     }
-                    static public double Parse(string input)
-                    {
-                        string output = ConvertToRPN(input);
-                        double result = EvaluateRPN(output);
-                        return result;
-                    }
+                    return numbers.Pop();
+                }
+                static public double Parse(string input)
+                {
+                    string output = GetRPNExpression(input);
+                    double result = EvaluateRPN(output);
+                    return result;
                 }
             }
         }
