@@ -10,7 +10,7 @@ namespace Expression
 {
     class Program
     {
-        static public class Lib
+        static public class Interface
         {
             static private class Command
             {
@@ -97,9 +97,9 @@ namespace Expression
                 }
                 static private void GetParams()
                 {
-                    command_base = Lib.Command.GetParam(command, 0);
+                    command_base = Interface.Command.GetParam(command, 0);
 
-                    var tempCollection = Lib.Command.ParamsCollection(command);
+                    var tempCollection = Interface.Command.ParamsCollection(command);
                     param_count = tempCollection.Count - 1;
 
                     param = new string[tempCollection.Count - 1];
@@ -137,7 +137,7 @@ namespace Expression
                 }
                 static public void Enter()
                 {
-                    command = Lib.Command.Enter();
+                    command = Interface.Command.Enter();
                     GetParams();
                 }
                 static private void faq()
@@ -161,7 +161,7 @@ namespace Expression
                                 {
                                     try
                                     {
-                                        string result = Lib.Expression.GetRPNExpression(param[0]);
+                                        string result = Interface.Expression.GetRPNExpression(param[0]);
                                         Console.WriteLine($"[Calc] RPN Expression: " + (result == String.Empty ? "Empty" : result) + "\n");
                                     }
                                     catch (Exception)
@@ -188,7 +188,7 @@ namespace Expression
                                     {
                                         try
                                         {
-                                            double result = Lib.Expression.EvaluateRPN(param[1]);
+                                            double result = Interface.Expression.EvaluateRPN(param[1]);
                                             Console.WriteLine($"[Calc] RPN Expression result: {result}\n");
                                         }
                                         catch (Exception)
@@ -203,7 +203,7 @@ namespace Expression
                                         {
                                             case "--exprpn":
                                                 {
-                                                    if (Lib.Expression.Samples.SwitchExpectedRPN(Boolean.Parse(param[1])))
+                                                    if (Interface.Expression.Samples.SwitchExpectedRPN(Boolean.Parse(param[1])))
                                                         Console.WriteLine("[Calc] Expected RPN expressions will be shown in samples implementation.\n");
                                                     else
                                                         Console.WriteLine("[Calc] Expected RPN expressions will be hidden in samples implementation.\n");
@@ -211,7 +211,7 @@ namespace Expression
                                                 }
                                             case "--expres":
                                                 {
-                                                    if (Lib.Expression.Samples.SwitchExpectedResult(Boolean.Parse(param[1])))
+                                                    if (Interface.Expression.Samples.SwitchExpectedResult(Boolean.Parse(param[1])))
                                                         Console.WriteLine("[Calc] Expected expression results will be shown in samples implementation.\n");
                                                     else
                                                         Console.WriteLine("[Calc] Expected expression results will be hidden in samples implementation.\n");
@@ -219,7 +219,7 @@ namespace Expression
                                                 }
                                             case "--actrpn":
                                                 {
-                                                    if (Lib.Expression.Samples.SwitchActualRPN(Boolean.Parse(param[1])))
+                                                    if (Interface.Expression.Samples.SwitchActualRPN(Boolean.Parse(param[1])))
                                                         Console.WriteLine("[Calc] Actual RPN expressions will be shown in samples implementation.\n");
                                                     else
                                                         Console.WriteLine("[Calc] Actual RPN expressions will be hidden in samples implementation.\n");
@@ -233,13 +233,13 @@ namespace Expression
                                 {
                                     if (param[0] == "-t")
                                     {
-                                        Lib.Expression.Samples.ImplementSamples();
+                                        Interface.Expression.Samples.ImplementSamples();
                                         break;
                                     }
 
                                     try
                                     {
-                                        double result = Lib.Expression.Parse(param[0]);
+                                        double result = Interface.Expression.Parse(param[0]);
                                         Console.WriteLine($"[Calc] Expression result: {result}\n");
                                     }
                                     catch (Exception)
@@ -260,18 +260,18 @@ namespace Expression
                             }
                         case "help":
                             {
-                                Lib.Shell.faq();
+                                Interface.Shell.faq();
                                 return;
                             }
                         case "cls":
                             {
                                 Console.Clear();
-                                Lib.Shell.Ref();
+                                Interface.Shell.Ref();
                                 return;
                             }
                         case "exit":
                             {
-                                if (Lib.Output.Confirmation("Are you sure you want to exit?"))
+                                if (Interface.Output.Confirmation("Are you sure you want to exit?"))
                                 {
                                     Console.Clear();
                                     System.Environment.Exit(0);
@@ -620,12 +620,12 @@ namespace Expression
         }
         static void Main(string[] args)
         {
-            Lib.Shell.Ref();
+            Interface.Shell.Ref();
             while (true)
             {
                 Console.Title = "Console";
-                Lib.Shell.Enter();
-                Lib.Shell.Execute();
+                Interface.Shell.Enter();
+                Interface.Shell.Execute();
             }
         }
     }
