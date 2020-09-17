@@ -377,7 +377,10 @@ namespace Expression
                         Ctg = 'c',
                         Ln = 'l',
                         Lg = 'g',
-                        Log = 'd'
+                        Log = 'd',
+                        Exp = 'E',
+                        Pow2 = 'P',
+                        Abs = 'A'
                     }
                     public enum ConstantOperators
                     {
@@ -400,197 +403,206 @@ namespace Expression
                         Equal = '='
                     }
                 }
-                static private bool IsDelimeter(char c)
+                static private class Service
                 {
-                    if (Enum.IsDefined(typeof(Enums.Delimeters), (int)c)) return true;
-                    return false;
-                }
-                static private bool IsBinaryOperator(char c)
-                {
-                    if (Enum.IsDefined(typeof(Enums.BinaryOperators), (int)c)) return true;
-                    return false;
-                }
-                static private bool IsUnaryOperator(char c)
-                {
-                    if (Enum.IsDefined(typeof(Enums.UnaryOperators), (int)c)) return true;
-                    return false;
-                }
-                static private bool IsConstantOperator(char c)
-                {
-                    if (Enum.IsDefined(typeof(Enums.ConstantOperators), (int)c)) return true;
-                    return false;
-                }
-                static private byte GetBinaryOperatorPriority(char s)
-                {
-                    switch (s)
+                    static public bool IsDelimeter(char c)
                     {
-                        case (char)Enums.BinaryOperators.LeftBracket: return 0;
-                        case (char)Enums.BinaryOperators.RightBracket: return 1;
-                        case (char)Enums.BinaryOperators.Plus: return 2;
-                        case (char)Enums.BinaryOperators.Minus: return 3;
-                        case (char)Enums.BinaryOperators.Mul: return 4;
-                        case (char)Enums.BinaryOperators.Div: return 4;
-                        case (char)Enums.BinaryOperators.Pow: return 5;
-                        default: return 6;
+                        if (Enum.IsDefined(typeof(Enums.Delimeters), (int)c)) return true;
+                        return false;
+                    }
+                    static public bool IsBinaryOperator(char c)
+                    {
+                        if (Enum.IsDefined(typeof(Enums.BinaryOperators), (int)c)) return true;
+                        return false;
+                    }
+                    static public bool IsUnaryOperator(char c)
+                    {
+                        if (Enum.IsDefined(typeof(Enums.UnaryOperators), (int)c)) return true;
+                        return false;
+                    }
+                    static public bool IsConstantOperator(char c)
+                    {
+                        if (Enum.IsDefined(typeof(Enums.ConstantOperators), (int)c)) return true;
+                        return false;
+                    }
+                    static public byte GetBinaryOperatorPriority(char s)
+                    {
+                        switch (s)
+                        {
+                            case (char)Enums.BinaryOperators.LeftBracket: return 0;
+                            case (char)Enums.BinaryOperators.RightBracket: return 1;
+                            case (char)Enums.BinaryOperators.Plus: return 2;
+                            case (char)Enums.BinaryOperators.Minus: return 3;
+                            case (char)Enums.BinaryOperators.Mul: return 4;
+                            case (char)Enums.BinaryOperators.Div: return 4;
+                            case (char)Enums.BinaryOperators.Pow: return 5;
+                            default: return 6;
+                        }
                     }
                 }
-                static public string GetRPNExpression(string input)
+                static public string GetRPNExpression(string Expression)
                 {
-                    string output = string.Empty;
-                    Stack<char> operStack = new Stack<char>();
+                    string RPNExpression = string.Empty;
+                    Stack<char> OperatorStack = new Stack<char>();
 
-                    for (int i = 0; i < input.Length; i++)
+                    for (int i = 0; i < Expression.Length; i++)
                     {
-                        if (IsDelimeter(input[i]))
+                        if (Service.IsDelimeter(Expression[i]))
                             continue;
 
-                        if (Char.IsDigit(input[i]))
+                        if (Char.IsDigit(Expression[i]))
                         {
-                            while (!IsDelimeter(input[i]) && !IsBinaryOperator(input[i]))
+                            while (!Service.IsDelimeter(Expression[i]) && !Service.IsBinaryOperator(Expression[i]))
                             {
-                                output += input[i];
+                                RPNExpression += Expression[i];
                                 i++;
 
-                                if (i == input.Length) break;
+                                if (i == Expression.Length) break;
                             }
 
-                            output += " ";
+                            RPNExpression += " ";
                             i--;
                         }
-                        if (Char.IsLetter(input[i]))
+                        if (Char.IsLetter(Expression[i]))
                         {
                             string function = String.Empty;
-                            while (Char.IsLetter(input[i]))
+                            while (Char.IsLetter(Expression[i]) || Char.IsDigit(Expression[i]))
                             {
-                                function += input[i];
-                                if (i + 1 == input.Length) break;
+                                function += Expression[i];
+                                if (i + 1 == Expression.Length) break;
                                 i++;
                             }
 
                             switch (function)
                             {
-                                case "sqrt": { if (input[i] != '(') throw new ArgumentException(); operStack.Push((char)Enums.UnaryOperators.SquareRoot); break; }
-                                case "sqr": { if (input[i] != '(') throw new ArgumentException(); operStack.Push((char)Enums.UnaryOperators.Square); break; }
-                                case "sin": { if (input[i] != '(') throw new ArgumentException(); operStack.Push((char)Enums.UnaryOperators.Sin); break; }
-                                case "cos": { if (input[i] != '(') throw new ArgumentException(); operStack.Push((char)Enums.UnaryOperators.Cos); break; }
-                                case "tan": { if (input[i] != '(') throw new ArgumentException(); operStack.Push((char)Enums.UnaryOperators.Tan); break; }
-                                case "ctg": { if (input[i] != '(') throw new ArgumentException(); operStack.Push((char)Enums.UnaryOperators.Ctg); break; }
-                                case "ln": { if (input[i] != '(') throw new ArgumentException(); operStack.Push((char)Enums.UnaryOperators.Ln); break; }
-                                case "lg": { if (input[i] != '(') throw new ArgumentException(); operStack.Push((char)Enums.UnaryOperators.Lg); break; }
-                                case "log": { if (input[i] != '(') throw new ArgumentException(); operStack.Push((char)Enums.UnaryOperators.Log); break; }
-                                case "pi": { operStack.Push((char)Enums.ConstantOperators.Pi); break; }
-                                case "e": { operStack.Push((char)Enums.ConstantOperators.E); break; }
+                                case "sqrt": { if (Expression[i] != (char)Enums.BinaryOperators.LeftBracket) throw new ArgumentException(); OperatorStack.Push((char)Enums.UnaryOperators.SquareRoot); break; }
+                                case "sqr": { if (Expression[i] != (char)Enums.BinaryOperators.LeftBracket) throw new ArgumentException(); OperatorStack.Push((char)Enums.UnaryOperators.Square); break; }
+                                case "sin": { if (Expression[i] != (char)Enums.BinaryOperators.LeftBracket) throw new ArgumentException(); OperatorStack.Push((char)Enums.UnaryOperators.Sin); break; }
+                                case "cos": { if (Expression[i] != (char)Enums.BinaryOperators.LeftBracket) throw new ArgumentException(); OperatorStack.Push((char)Enums.UnaryOperators.Cos); break; }
+                                case "tan": { if (Expression[i] != (char)Enums.BinaryOperators.LeftBracket) throw new ArgumentException(); OperatorStack.Push((char)Enums.UnaryOperators.Tan); break; }
+                                case "ctg": { if (Expression[i] != (char)Enums.BinaryOperators.LeftBracket) throw new ArgumentException(); OperatorStack.Push((char)Enums.UnaryOperators.Ctg); break; }
+                                case "exp": { if (Expression[i] != (char)Enums.BinaryOperators.LeftBracket) throw new ArgumentException(); OperatorStack.Push((char)Enums.UnaryOperators.Exp); break; }
+                                case "ln": { if (Expression[i] != (char)Enums.BinaryOperators.LeftBracket) throw new ArgumentException(); OperatorStack.Push((char)Enums.UnaryOperators.Ln); break; }
+                                case "lg": { if (Expression[i] != (char)Enums.BinaryOperators.LeftBracket) throw new ArgumentException(); OperatorStack.Push((char)Enums.UnaryOperators.Lg); break; }
+                                case "log": { if (Expression[i] != (char)Enums.BinaryOperators.LeftBracket) throw new ArgumentException(); OperatorStack.Push((char)Enums.UnaryOperators.Log); break; }
+                                case "pow2": { if (Expression[i] != (char)Enums.BinaryOperators.LeftBracket) throw new ArgumentException(); OperatorStack.Push((char)Enums.UnaryOperators.Pow2); break; }
+                                case "abs": { if (Expression[i] != (char)Enums.BinaryOperators.LeftBracket) throw new ArgumentException(); OperatorStack.Push((char)Enums.UnaryOperators.Abs); break; }
+                                case "pi": { OperatorStack.Push((char)Enums.ConstantOperators.Pi); break; }
+                                case "e": { OperatorStack.Push((char)Enums.ConstantOperators.E); break; }
                                 default: { throw new ArgumentException(); }
                             }
                         }
-                        if (IsBinaryOperator(input[i]))
+                        if (Service.IsBinaryOperator(Expression[i]))
                         {
-                            if (input[i] == (char)Enums.BinaryOperators.LeftBracket)
-                                operStack.Push(input[i]);
-                            else if (input[i] == (char)Enums.BinaryOperators.RightBracket)
+                            if (Expression[i] == (char)Enums.BinaryOperators.LeftBracket)
+                                OperatorStack.Push(Expression[i]);
+                            else if (Expression[i] == (char)Enums.BinaryOperators.RightBracket)
                             {
-                                char s = operStack.Pop();
+                                char Operator = OperatorStack.Pop();
 
-                                while (s != (char)Enums.BinaryOperators.LeftBracket)
+                                while (Operator != (char)Enums.BinaryOperators.LeftBracket)
                                 {
-                                    output += s.ToString() + ' ';
-                                    s = operStack.Pop();
+                                    RPNExpression += Operator.ToString() + " ";
+                                    Operator = OperatorStack.Pop();
                                 }
                             }
                             else
                             {
-                                if (operStack.Count > 0)
-                                    if (GetBinaryOperatorPriority(input[i]) <= GetBinaryOperatorPriority(operStack.Peek()))
-                                        output += operStack.Pop().ToString() + " ";
+                                if (OperatorStack.Count > 0)
+                                    if (Service.GetBinaryOperatorPriority(Expression[i]) <= Service.GetBinaryOperatorPriority(OperatorStack.Peek()))
+                                        RPNExpression += OperatorStack.Pop().ToString() + " ";
 
-                                if (input[i] == (char)Enums.BinaryOperators.Minus)
+                                if (Expression[i] == (char)Enums.BinaryOperators.Minus)
                                 {
                                     var j = i;
-                                    while (j > 0 && !Char.IsDigit(input[j]) && !(input[j] == (char)Enums.BinaryOperators.LeftBracket))
+                                    while (j > 0 && !Char.IsDigit(Expression[j]) && !(Expression[j] == (char)Enums.BinaryOperators.LeftBracket))
                                     {
                                         j--;
                                     }
-                                    if (input[j] == (char)Enums.BinaryOperators.LeftBracket || j == 0) operStack.Push((char)Enums.UnaryOperators.Minus);
-                                    else operStack.Push((char)Enums.BinaryOperators.Minus);
+                                    if (Expression[j] == (char)Enums.BinaryOperators.LeftBracket || j == 0) OperatorStack.Push((char)Enums.UnaryOperators.Minus);
+                                    else OperatorStack.Push((char)Enums.BinaryOperators.Minus);
                                 }
                                 else
                                 {
-                                    operStack.Push(char.Parse(input[i].ToString()));
+                                    OperatorStack.Push(char.Parse(Expression[i].ToString()));
                                 }
                             }
                         }
                     }
 
-                    while (operStack.Count > 0)
-                        output += operStack.Pop() + " ";
+                    while (OperatorStack.Count > 0)
+                        RPNExpression += OperatorStack.Pop() + " ";
 
-                    return output;
+                    return RPNExpression;
                 }
-                static public double EvaluateRPN(string input)
+                static public double EvaluateRPN(string RPNExpression)
                 {
                     double result = 0;
                     Stack<double> numbers = new Stack<double>();
 
-                    for (int i = 0; i < input.Length; i++)
+                    for (int i = 0; i < RPNExpression.Length; i++)
                     {
-                        if (Char.IsDigit(input[i]))
+                        if (Char.IsDigit(RPNExpression[i]))
                         {
-                            string a = string.Empty;
+                            string number = string.Empty;
 
-                            while (!IsDelimeter(input[i]) && !IsBinaryOperator(input[i]))
+                            while (!Service.IsDelimeter(RPNExpression[i]) && !Service.IsBinaryOperator(RPNExpression[i]))
                             {
-                                a += input[i];
+                                number += RPNExpression[i];
                                 i++;
-                                if (i == input.Length) break;
+                                if (i == RPNExpression.Length) break;
                             }
-                            numbers.Push(double.Parse(a));
+                            numbers.Push(double.Parse(number));
                             i--;
                         }
-                        else if (IsConstantOperator(input[i]))
+                        else if (Service.IsConstantOperator(RPNExpression[i]))
                         {
-                            switch (input[i])
+                            switch (RPNExpression[i])
                             {
                                 case (char)Enums.ConstantOperators.Pi: { numbers.Push(Math.PI); break; }
                                 case (char)Enums.ConstantOperators.E: { numbers.Push(Math.E); break; }
                             }
                         }
-                        else if (IsUnaryOperator(input[i]))
+                        else if (Service.IsUnaryOperator(RPNExpression[i]))
                         {
-                            double a = numbers.Pop();
+                            double Operand = numbers.Pop();
 
-                            switch (input[i])
+                            switch (RPNExpression[i])
                             {
-                                case (char)Enums.UnaryOperators.Minus: result = -a; break;
-                                case (char)Enums.UnaryOperators.SquareRoot: { if (a < 0) throw new ArgumentOutOfRangeException(); result = Math.Sqrt(a); break; }
-                                case (char)Enums.UnaryOperators.Square: { result = a * a; break; }
-                                case (char)Enums.UnaryOperators.Sin: { result = Math.Sin(a); break; }
-                                case (char)Enums.UnaryOperators.Cos: { result = Math.Cos(a); break; }
-                                case (char)Enums.UnaryOperators.Tan: { result = Math.Tan(a); break; }
-                                case (char)Enums.UnaryOperators.Ctg: { result = 1 / Math.Tan(a); break; }
-                                case (char)Enums.UnaryOperators.Ln: { if (a <= 0) throw new ArgumentException(); result = Math.Log(a); break; }
-                                case (char)Enums.UnaryOperators.Lg: { if (a <= 0) throw new ArgumentException(); result = Math.Log10(a); break; }
-                                case (char)Enums.UnaryOperators.Log: { if (a <= 0) throw new ArgumentException(); result = Math.Log(a) / Math.Log(2); break; }
+                                case (char)Enums.UnaryOperators.Minus: result = -(Operand); break;
+                                case (char)Enums.UnaryOperators.SquareRoot: { if (Operand < 0) throw new ArgumentOutOfRangeException(); result = Math.Sqrt(Operand); break; }
+                                case (char)Enums.UnaryOperators.Square: { result = Operand * Operand; break; }
+                                case (char)Enums.UnaryOperators.Sin: { result = Math.Sin(Operand); break; }
+                                case (char)Enums.UnaryOperators.Cos: { result = Math.Cos(Operand); break; }
+                                case (char)Enums.UnaryOperators.Tan: { result = Math.Tan(Operand); break; }
+                                case (char)Enums.UnaryOperators.Ctg: { result = 1 / Math.Tan(Operand); break; }
+                                case (char)Enums.UnaryOperators.Exp: { result = Math.Exp(Operand); break; }
+                                case (char)Enums.UnaryOperators.Ln: { if (Operand <= 0) throw new ArgumentException(); result = Math.Log(Operand); break; }
+                                case (char)Enums.UnaryOperators.Lg: { if (Operand <= 0) throw new ArgumentException(); result = Math.Log10(Operand); break; }
+                                case (char)Enums.UnaryOperators.Log: { if (Operand <= 0) throw new ArgumentException(); result = Math.Log(Operand) / Math.Log(2); break; }
+                                case (char)Enums.UnaryOperators.Pow2: { result = Math.Pow(2, Operand); break; }
+                                case (char)Enums.UnaryOperators.Abs: { result = Math.Abs(Operand); break; }
                             }
                             if (Double.IsNaN(result)) throw new ArgumentException();
                             numbers.Push(result);
                         }
-                        else if (IsBinaryOperator(input[i]))
+                        else if (Service.IsBinaryOperator(RPNExpression[i]))
                         {
-                            double a = numbers.Pop();
-                            double b = numbers.Pop();
+                            double RightOperand = numbers.Pop();
+                            double LeftOperand = numbers.Pop();
 
-                            switch (input[i])
+                            switch (RPNExpression[i])
                             {
-                                case (char)Enums.BinaryOperators.Plus: result = b + a; break;
-                                case (char)Enums.BinaryOperators.Minus: result = b - a; break;
-                                case (char)Enums.BinaryOperators.Mul: result = b * a; break;
+                                case (char)Enums.BinaryOperators.Plus: result = LeftOperand + RightOperand; break;
+                                case (char)Enums.BinaryOperators.Minus: result = LeftOperand - RightOperand; break;
+                                case (char)Enums.BinaryOperators.Mul: result = LeftOperand * RightOperand; break;
                                 case (char)Enums.BinaryOperators.Div:
                                     {
-                                        if (a == 0) throw new DivideByZeroException();
-                                        result = b / a;
+                                        if (RightOperand == 0) throw new DivideByZeroException();
+                                        result = LeftOperand / RightOperand;
                                         break;
                                     }
-                                case (char)Enums.BinaryOperators.Pow: result = double.Parse(Math.Pow(double.Parse(b.ToString()), double.Parse(a.ToString())).ToString()); break;
+                                case (char)Enums.BinaryOperators.Pow: result = Math.Pow(LeftOperand, RightOperand); break;
                             }
                             if (Double.IsNaN(result)) throw new ArgumentException();
                             numbers.Push(result);
@@ -598,10 +610,10 @@ namespace Expression
                     }
                     return numbers.Pop();
                 }
-                static public double Parse(string input)
+                static public double Parse(string Expression)
                 {
-                    string output = GetRPNExpression(input);
-                    double result = EvaluateRPN(output);
+                    string RPNExpression = GetRPNExpression(Expression);
+                    double result = EvaluateRPN(RPNExpression);
                     return result;
                 }
             }
