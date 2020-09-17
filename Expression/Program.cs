@@ -382,7 +382,12 @@ namespace Expression
                         new Sample("((3*15)-(7+7*4))/(1,25*8^(1/3))", "3 15 * 7 7 4 * + - 1,25 8 1 3 / ^ * /", 4),
                         new Sample("5*(-3)", "5 3 $ *", -15),
                         new Sample("-10*7", "10 $ 7 *", -70),
-                        new Sample("2^(-1)", "2 1 $ ^", 0.5)
+                        new Sample("2^(-1)", "2 1 $ ^", 0.5),
+                        new Sample("-5*(5^2/11*(-3)-1)^2", "5 $ 5 2 ^ 11 / 3 $ * 1 - 2 ^ *", -305.6198347),
+                        new Sample("sqrt(40-(-9))+(-2/5*(-(-5))+423,233^2/15^3,33333)", "40 9 $ - # 11 22 3 / ^ 22,222 / 44,3321 $ - 6 1 3 / ^ + +", 26.5208177218604),
+                        new Sample("sqrt(40-(-9)) + (11^(22/3)/22,222)-(-44,3321)+6^(1/3)", "", 1950331.26665),
+                        new Sample("sqrt(sqr(23,33))-4/sqr(sqrt(sqr((-16)/(-4))))", "", 23.08),
+                        new Sample("sqrt(85^2/(21^(-3))-11*11/(-55-(-55+33*123/443)))", "85 2 ^ 21 3 $ ^ / 11 11 * 55 $ 55 $ 33 123 * 443 / + - / - #", 8179.89842272)
                     };
                     static public Sample[] Samples => _samples;
                     static private bool IsDelimeter(char c)
@@ -397,7 +402,7 @@ namespace Expression
                     }
                     static private bool IsUnaryOperator(char с)
                     {
-                        if (("$#".IndexOf(с) != -1)) return true;
+                        if (("$#&".IndexOf(с) != -1)) return true;
                         return false;
                     }
                     static private byte GetPriority(char s)
@@ -437,7 +442,29 @@ namespace Expression
                                 output += " ";
                                 i--;
                             }
+                            if (Char.IsLetter(input[i]))
+                            {
+                                string function = String.Empty;
+                                while (Char.IsLetter(input[i]))
+                                {
+                                    function += input[i++];
+                                }
 
+                                switch(function)
+                                {
+                                    case "sqrt":
+                                        {
+                                            operStack.Push('#');
+                                            break;
+                                        }
+                                    case "sqr":
+                                        {
+                                            operStack.Push('&');
+                                            break;
+                                        }
+                                    default: { throw new ArgumentException(); }
+                                }
+                            }
                             if (IsOperator(input[i]))
                             {
                                 if (input[i] == '(')
@@ -458,7 +485,20 @@ namespace Expression
                                         if (GetPriority(input[i]) <= GetPriority(operStack.Peek()))
                                             output += operStack.Pop().ToString() + " ";
 
-                                    operStack.Push(char.Parse(input[i].ToString()));
+                                    if (input[i] == '-')
+                                    {
+                                        var j = i;
+                                        while (j > 0 && !Char.IsDigit(input[j]) && !(input[j] == '('))
+                                        {
+                                            j--;
+                                        }
+                                        if (input[j] == '(' || j == 0) operStack.Push('$');
+                                        else operStack.Push('-');
+                                    }
+                                    else
+                                    {
+                                        operStack.Push(char.Parse(input[i].ToString()));
+                                    }
                                 }
                             }
                         }
@@ -495,7 +535,17 @@ namespace Expression
                                 switch (input[i])
                                 {
                                     case '$': result = -a; break;
-                                    case '#': result = Math.Sqrt(a); break;
+                                    case '#':
+                                        {
+                                            if (a < 0) throw new ArgumentOutOfRangeException();
+                                            result = Math.Sqrt(a);
+                                            break;
+                                        }
+                                    case '&':
+                                        {
+                                            result = a * a;
+                                            break;
+                                        }
                                 }
                                 temp.Push(result);
                             }
@@ -509,9 +559,15 @@ namespace Expression
                                     case '+': result = b + a; break;
                                     case '-': result = b - a; break;
                                     case '*': result = b * a; break;
-                                    case '/': result = b / a; break;
+                                    case '/': 
+                                        {
+                                            if (a == 0) throw new DivideByZeroException();
+                                            result = b / a;
+                                            break;
+                                        }
                                     case '^': result = double.Parse(Math.Pow(double.Parse(b.ToString()), double.Parse(a.ToString())).ToString()); break;
                                 }
+                                if (Double.IsNaN(result)) throw new ArgumentException();
                                 temp.Push(result);
                             }
                         }
