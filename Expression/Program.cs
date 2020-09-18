@@ -385,7 +385,8 @@ namespace Expression
                     public enum ConstantOperators
                     {
                         Pi = 'p',
-                        E = 'e'
+                        E = 'e',
+                        Ans = 'a'
                     }
                     public enum BinaryOperators
                     {
@@ -440,6 +441,7 @@ namespace Expression
                         }
                     }
                 }
+                static public double Ans { get; private set; } = Double.NaN;
                 static public string GetRPNExpression(string Expression)
                 {
                     string RPNExpression = string.Empty;
@@ -473,7 +475,7 @@ namespace Expression
                                 i++;
                             }
 
-                            switch (function)
+                            switch (function.ToLower())
                             {
                                 case "sqrt": { if (Expression[i] != (char)Enums.BinaryOperators.LeftBracket) throw new ArgumentException(); OperatorStack.Push((char)Enums.UnaryOperators.SquareRoot); break; }
                                 case "sqr": { if (Expression[i] != (char)Enums.BinaryOperators.LeftBracket) throw new ArgumentException(); OperatorStack.Push((char)Enums.UnaryOperators.Square); break; }
@@ -489,6 +491,7 @@ namespace Expression
                                 case "abs": { if (Expression[i] != (char)Enums.BinaryOperators.LeftBracket) throw new ArgumentException(); OperatorStack.Push((char)Enums.UnaryOperators.Abs); break; }
                                 case "pi": { OperatorStack.Push((char)Enums.ConstantOperators.Pi); break; }
                                 case "e": { OperatorStack.Push((char)Enums.ConstantOperators.E); break; }
+                                case "ans": { OperatorStack.Push((char)Enums.ConstantOperators.Ans); break; }
                                 default: { throw new ArgumentException(); }
                             }
                         }
@@ -561,6 +564,7 @@ namespace Expression
                             {
                                 case (char)Enums.ConstantOperators.Pi: { numbers.Push(Math.PI); break; }
                                 case (char)Enums.ConstantOperators.E: { numbers.Push(Math.E); break; }
+                                case (char)Enums.ConstantOperators.Ans: { numbers.Push(Ans); break; }
                             }
                         }
                         else if (Service.IsUnaryOperator(RPNExpression[i]))
@@ -614,6 +618,7 @@ namespace Expression
                 {
                     string RPNExpression = GetRPNExpression(Expression);
                     double result = EvaluateRPN(RPNExpression);
+                    Ans = result;
                     return result;
                 }
             }
